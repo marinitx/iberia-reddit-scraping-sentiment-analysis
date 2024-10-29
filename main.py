@@ -32,45 +32,39 @@ def clean_text(text):
     return ' '.join(text.split()).strip()
 
 def is_relevant(text, title=""):
-    """Check if the content is relevant to Iberia airline"""
+    """Check if the content is relevant"""
     text = text.lower()
     title = title.lower()
     
-    airline_terms = [
-        'flight', 'vuelo', 'airline', 'aerolínea', 'airport', 'aeropuerto',
-        'delayed', 'retraso', 'cancelled', 'cancelado', 'booking', 'reserva',
-        'madrid', 'barajas', 'spain', 'españa', 'maleta', 'luggage',
-        'passenger', 'pasajero', 'ticket', 'billete'
+    allterms = [
+        # Use your own terms separated by comas for example 'one', 'two'
     ]
     
-    if 'iberia' not in text and 'iberia' not in title:
+    # Add your own terms that must be in text or title
+    if '' not in text and '' not in title:
         return False
         
-    return any(term in text or term in title for term in airline_terms)
+    return any(term in text or term in title for term in allterms)
 
-def analyze_iberia():
+def analyze_terms():
     reddit = setup_reddit()
     data = []
     
     search_terms = [
-        '"iberia" airline',
-        '"iberia" flight',
-        '"iberia" vuelo',
-        '"iberia" review',
-        '"iberia" experience',
-        '"iberia" opinión'
+        # Use your own terms separated by comas for example 'one', 'two'
     ]
     
-    print("Collecting posts and comments about iberia airline...")
+    print("Collecting posts and comments...")
     
     processed_submissions = set()
     
     for search_term in search_terms:
         try:
-            print(f"\nBuscando: {search_term}")
+            print(f"\Searching: {search_term}")
             
-            # Búsqueda en subreddits relevantes
-            for subreddit in ['travel', 'flights', 'spain', 'europe']:
+            # Searching in relevant subreddits.
+            # Use your own terms
+            for subreddit in ['', '']:
                 try:
                     for submission in reddit.subreddit(subreddit).search(search_term, limit=10, sort='new'):
                         if submission.id in processed_submissions:
@@ -94,9 +88,9 @@ def analyze_iberia():
                             }
                             post_data['sentiment'] = get_sentiment(post_data['text'])
                             data.append(post_data)
-                            print(f"Procesando post: {submission.title[:100]}...")
+                            print(f"Processing post: {submission.title[:100]}...")
                             
-                            # Procesar comentarios
+                            # Processing comments
                             try:
                                 submission.comments.replace_more(limit=0)
                                 for comment in submission.comments.list():
@@ -114,24 +108,24 @@ def analyze_iberia():
                                         data.append(comment_data)
                             
                             except (RequestException, Timeout) as e:
-                                print(f"Error procesando comentarios: {str(e)}")
+                                print(f"Error processing comments: {str(e)}")
                                 continue
                             
                             time.sleep(2)
                             
                         except Exception as e:
-                            print(f"Error procesando submission: {str(e)}")
+                            print(f"Error processing submission: {str(e)}")
                             continue
                             
                 except Exception as e:
-                    print(f"Error en subreddit {subreddit}: {str(e)}")
+                    print(f"Error on subreddit {subreddit}: {str(e)}")
                     continue
                     
         except Exception as e:
-            print(f"Error en término de búsqueda {search_term}: {str(e)}")
+            print(f"Error on search term {search_term}: {str(e)}")
             continue
     
-    # Convertir a DataFrame
+    # Convert to DataFrame
     df = pd.DataFrame(data)
     
     if len(df) > 0:
@@ -145,7 +139,7 @@ def analyze_iberia():
         print("\nDesglose por subreddit:")
         print(df.groupby('subreddit')['sentiment'].agg(['count', 'mean']))
         
-        # Mostrar algunos ejemplos de posts más relevantes
+        # Examples
         print("\nEjemplos de posts encontrados:")
         for _, row in df[df['type'] == 'post'].head(3).iterrows():
             print(f"\nTítulo: {row['title']}")
@@ -153,17 +147,17 @@ def analyze_iberia():
             print(f"URL: {row['url']}")
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"iberia_analysis_{timestamp}.csv"
+        filename = f"analysis_{timestamp}.csv"
         df.to_csv(filename, index=False, encoding='utf-8')
         print(f"\nResultados guardados en {filename}")
     else:
-        print("No se encontraron menciones relevantes de iberia")
+        print("No se encontraron menciones relevantes")
     
     return df
 
 if __name__ == "__main__":
     try:
-        df = analyze_iberia()
+        df = analyze_terms()
     except KeyboardInterrupt:
         print("\nProceso interrumpido por el usuario")
     except Exception as e:
